@@ -1,0 +1,168 @@
+[gd_scene load_steps=35 format=3 uid="uid://bmyngxuktv4tv"]
+
+[ext_resource type="Script" uid="uid://b6dbrfk5npwe6" path="res://game/game_manager.gd" id="1_qt8sl"]
+[ext_resource type="Script" uid="uid://ddnhryq58vase" path="res://player/tasks/task.gd" id="2_j8tme"]
+[ext_resource type="Script" uid="uid://30brrhhy36yt" path="res://player/tasks/task_pass.gd" id="3_41m6p"]
+[ext_resource type="Script" uid="uid://dnumofps04vgw" path="res://player/tasks/task_run_route.gd" id="3_a74io"]
+[ext_resource type="Script" uid="uid://drv4hhxk3y7ap" path="res://game/play_call.gd" id="4_vswil"]
+[ext_resource type="Script" uid="uid://b2pa1sq81fbfk" path="res://player/tasks/task_protect_passer.gd" id="5_3vho3"]
+[ext_resource type="Script" uid="uid://bhggbt3qqvb7" path="res://player/tasks/task_cover_man.gd" id="6_j8tme"]
+[ext_resource type="Script" uid="uid://gq8x5fdngjb5" path="res://game/player_manager.gd" id="6_l8g03"]
+[ext_resource type="Script" uid="uid://bxdlnwqsfvdue" path="res://player/tasks/task_snap_ball.gd" id="6_vsp63"]
+[ext_resource type="Script" uid="uid://cw13tx1bq1dpw" path="res://game/field.gd" id="7_6kmpf"]
+[ext_resource type="Script" uid="uid://c1m8yfrm6rqwq" path="res://game/game_camera.gd" id="7_mh2ru"]
+[ext_resource type="PackedScene" uid="uid://t3wkta7buc3t" path="res://game/game_ui.tscn" id="8_ndp81"]
+[ext_resource type="Script" uid="uid://dvywilts6p7h" path="res://player/tasks/task_pass_rush.gd" id="8_qf6n1"]
+
+[sub_resource type="Resource" id="Resource_ln7ps"]
+script = ExtResource("3_41m6p")
+role = 0
+line_up = Vector2(0, 0)
+metadata/_custom_type_script = "uid://30brrhhy36yt"
+
+[sub_resource type="Resource" id="Resource_xqpkt"]
+script = ExtResource("3_a74io")
+route = Array[Vector2]([Vector2(80, 0), Vector2(280, -160)])
+role = 1
+line_up = Vector2(-20, 135)
+
+[sub_resource type="Resource" id="Resource_3vho3"]
+script = ExtResource("3_a74io")
+route = Array[Vector2]([Vector2(45, 0), Vector2(35, -200)])
+role = 1
+line_up = Vector2(-20, 100)
+metadata/_custom_type_script = "uid://dnumofps04vgw"
+
+[sub_resource type="Resource" id="Resource_j8tme"]
+script = ExtResource("3_a74io")
+route = Array[Vector2]([Vector2(50, 0), Vector2(40, 10)])
+role = 1
+line_up = Vector2(-20, -100)
+metadata/_custom_type_script = "uid://dnumofps04vgw"
+
+[sub_resource type="Resource" id="Resource_b686c"]
+script = ExtResource("3_a74io")
+route = Array[Vector2]([Vector2(200, 0)])
+role = 1
+line_up = Vector2(-20, -140)
+metadata/_custom_type_script = "uid://dnumofps04vgw"
+
+[sub_resource type="Resource" id="Resource_5e03w"]
+script = ExtResource("3_a74io")
+route = Array[Vector2]([Vector2(300, 0)])
+role = 1
+line_up = Vector2(-20, 65)
+metadata/_custom_type_script = "uid://dnumofps04vgw"
+
+[sub_resource type="Resource" id="Resource_hb504"]
+script = ExtResource("5_3vho3")
+role = 4
+line_up = Vector2(-25, -32)
+metadata/_custom_type_script = "uid://b2pa1sq81fbfk"
+
+[sub_resource type="Resource" id="Resource_ee6o4"]
+script = ExtResource("5_3vho3")
+role = 4
+line_up = Vector2(-15, -16)
+metadata/_custom_type_script = "uid://b2pa1sq81fbfk"
+
+[sub_resource type="Resource" id="Resource_4cobl"]
+script = ExtResource("6_vsp63")
+role = 5
+line_up = Vector2(-20, 0)
+metadata/_custom_type_script = "uid://bxdlnwqsfvdue"
+
+[sub_resource type="Resource" id="Resource_dxwpq"]
+script = ExtResource("5_3vho3")
+role = 4
+line_up = Vector2(-15, 16)
+metadata/_custom_type_script = "uid://b2pa1sq81fbfk"
+
+[sub_resource type="Resource" id="Resource_mhvfb"]
+script = ExtResource("5_3vho3")
+role = 4
+line_up = Vector2(-25, 32)
+metadata/_custom_type_script = "uid://b2pa1sq81fbfk"
+
+[sub_resource type="Resource" id="Resource_p4quc"]
+script = ExtResource("4_vswil")
+play = Array[ExtResource("2_j8tme")]([SubResource("Resource_ln7ps"), SubResource("Resource_xqpkt"), SubResource("Resource_3vho3"), SubResource("Resource_j8tme"), SubResource("Resource_b686c"), SubResource("Resource_5e03w"), SubResource("Resource_hb504"), SubResource("Resource_ee6o4"), SubResource("Resource_4cobl"), SubResource("Resource_dxwpq"), SubResource("Resource_mhvfb")])
+
+[sub_resource type="Resource" id="Resource_qf6n1"]
+script = ExtResource("6_j8tme")
+role_to_cover = 1
+role = 2
+line_up = Vector2(-40, 0)
+metadata/_custom_type_script = "uid://bhggbt3qqvb7"
+
+[sub_resource type="Resource" id="Resource_vsp63"]
+script = ExtResource("6_j8tme")
+role_to_cover = 1
+role = 2
+line_up = Vector2(-40, 0)
+metadata/_custom_type_script = "uid://bhggbt3qqvb7"
+
+[sub_resource type="Resource" id="Resource_leid8"]
+script = ExtResource("6_j8tme")
+role_to_cover = 1
+role = 2
+line_up = Vector2(-40, 0)
+metadata/_custom_type_script = "uid://bhggbt3qqvb7"
+
+[sub_resource type="Resource" id="Resource_8bboj"]
+script = ExtResource("8_qf6n1")
+role = 3
+line_up = Vector2(-20, -30)
+metadata/_custom_type_script = "uid://dvywilts6p7h"
+
+[sub_resource type="Resource" id="Resource_q52ks"]
+script = ExtResource("8_qf6n1")
+role = 3
+line_up = Vector2(-20, -10)
+metadata/_custom_type_script = "uid://dvywilts6p7h"
+
+[sub_resource type="Resource" id="Resource_jucfl"]
+script = ExtResource("8_qf6n1")
+role = 3
+line_up = Vector2(-20, 10)
+metadata/_custom_type_script = "uid://dvywilts6p7h"
+
+[sub_resource type="Resource" id="Resource_jdpby"]
+script = ExtResource("8_qf6n1")
+role = 3
+line_up = Vector2(-20, 30)
+metadata/_custom_type_script = "uid://dvywilts6p7h"
+
+[sub_resource type="Resource" id="Resource_58yx1"]
+script = ExtResource("8_qf6n1")
+role = 3
+line_up = Vector2(-120, 0)
+metadata/_custom_type_script = "uid://dvywilts6p7h"
+
+[sub_resource type="Resource" id="Resource_khtqv"]
+script = ExtResource("4_vswil")
+play = Array[ExtResource("2_j8tme")]([SubResource("Resource_qf6n1"), SubResource("Resource_vsp63"), SubResource("Resource_vsp63"), SubResource("Resource_vsp63"), SubResource("Resource_leid8"), SubResource("Resource_8bboj"), SubResource("Resource_q52ks"), SubResource("Resource_jucfl"), SubResource("Resource_jdpby"), SubResource("Resource_58yx1")])
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1_qt8sl")
+home_offense_call = SubResource("Resource_p4quc")
+home_defense_call = SubResource("Resource_khtqv")
+away_offense_call = SubResource("Resource_p4quc")
+away_defense_call = SubResource("Resource_khtqv")
+
+[node name="PlayerManager" type="Node2D" parent="."]
+y_sort_enabled = true
+script = ExtResource("6_l8g03")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(2, 2)
+script = ExtResource("7_mh2ru")
+
+[node name="Field" type="Node2D" parent="."]
+z_index = -100
+z_as_relative = false
+script = ExtResource("7_6kmpf")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="GameUI" parent="CanvasLayer" instance=ExtResource("8_ndp81")]

@@ -1,0 +1,169 @@
+[gd_scene load_steps=20 format=3 uid="uid://bmyngxuktv4tv"]
+
+[ext_resource type="Script" uid="uid://b6dbrfk5npwe6" path="res://game/game_manager.gd" id="1_qt8sl"]
+[ext_resource type="Script" uid="uid://ddnhryq58vase" path="res://player/tasks/task.gd" id="2_my7aq"]
+[ext_resource type="Script" uid="uid://30brrhhy36yt" path="res://player/tasks/task_pass.gd" id="3_41m6p"]
+[ext_resource type="Script" uid="uid://dnumofps04vgw" path="res://player/tasks/task_run_route.gd" id="3_a74io"]
+[ext_resource type="Script" uid="uid://drv4hhxk3y7ap" path="res://game/play_call.gd" id="4_vswil"]
+[ext_resource type="Script" uid="uid://cw13tx1bq1dpw" path="res://game/field.gd" id="7_6kmpf"]
+[ext_resource type="Script" uid="uid://c1m8yfrm6rqwq" path="res://game/game_camera.gd" id="7_mh2ru"]
+[ext_resource type="PackedScene" uid="uid://t3wkta7buc3t" path="res://game/game_ui.tscn" id="8_ndp81"]
+
+[sub_resource type="Resource" id="Resource_mtu8e"]
+script = ExtResource("3_41m6p")
+role = 0
+line_up = Vector2(-50, 0)
+
+[sub_resource type="Resource" id="Resource_xqpkt"]
+script = ExtResource("3_a74io")
+route = Array[Vector2]([Vector2(500, 0)])
+role = 1
+line_up = Vector2(0, 0)
+
+[sub_resource type="Resource" id="Resource_p4quc"]
+script = ExtResource("4_vswil")
+play = Array[ExtResource("2_my7aq")]([SubResource("Resource_mtu8e"), SubResource("Resource_xqpkt")])
+
+[sub_resource type="Resource" id="Resource_enddj"]
+script = ExtResource("2_my7aq")
+role = 2
+line_up = Vector2(-10, 0)
+
+[sub_resource type="Resource" id="Resource_3ceen"]
+script = ExtResource("4_vswil")
+play = Array[ExtResource("2_my7aq")]([SubResource("Resource_enddj")])
+
+[sub_resource type="Resource" id="Resource_2xa87"]
+script = ExtResource("3_41m6p")
+role = 0
+line_up = Vector2(0, 0)
+
+[sub_resource type="Resource" id="Resource_8s73m"]
+script = ExtResource("3_a74io")
+route = Array[Vector2]([Vector2(50, 0), Vector2(50, 100)])
+role = 1
+line_up = Vector2(0, 10)
+
+[sub_resource type="Resource" id="Resource_exldt"]
+script = ExtResource("4_vswil")
+play = Array[ExtResource("2_my7aq")]([SubResource("Resource_2xa87"), SubResource("Resource_8s73m")])
+
+[sub_resource type="Resource" id="Resource_wwtal"]
+script = ExtResource("2_my7aq")
+role = 2
+line_up = Vector2(0, 50)
+
+[sub_resource type="Resource" id="Resource_khtqv"]
+script = ExtResource("4_vswil")
+play = Array[ExtResource("2_my7aq")]([SubResource("Resource_wwtal")])
+
+[sub_resource type="GDScript" id="GDScript_femwn"]
+script/source = "extends Node2D
+class_name PlayerManager
+# Manages players and the ball
+
+const BALL := preload(\"res://ball.tscn\")
+const PLAYER := preload(\"res://player/player.tscn\")
+
+var ball_carrier: Player = null
+var ball: Ball = null # when ball is midair
+
+var graph := PlayerGraph.new()
+
+func create_ball(start_pos: Vector2, throw_input: Vector2) -> void:
+	# create ball
+	var instance := BALL.instantiate()
+	instance.velocity = Ball.swipe_to_velocity(throw_input)
+	var vec3_pos := Vector3(start_pos.x, start_pos.y, Ball.THROW_START_HEIGHT)
+	instance.vec3_pos = vec3_pos
+	instance.position = Vector2(vec3_pos.x, vec3_pos.y - vec3_pos.z)
+	add_child(instance)
+	# update references
+	ball = instance
+	ball_carrier = null
+
+# Assumes players are set (set_play)
+#func start_play() -> void:
+#	# TODO: is this function deprecated?
+#	graph.print_graph()
+#	# End 'set' state
+#	for i in graph.get_players().size():
+#		active_players[i].get_state().end_state()
+
+# Create / remove players, line up for play
+func set_play(play_call: PlayCall, home_team: bool) -> void:
+	print(\"player_manager.gd: set play (%s) %s\" % [play_call.play.size(), home_team])
+	var play_call_roles := play_call.get_roles()
+	for role: Player.Role in play_call_roles:
+		# Add / remove players to fit playcall
+		while graph.get_role_players(role, home_team).size() < play_call.get_num_players(role):
+			add_player(role, home_team)
+		while graph.get_role_players(role, home_team).size() > play_call.get_num_players(role):
+			remove_player(role, home_team)
+		# Make players line up
+		var on_offense: bool = (Globals.drive_dir == home_team)
+		var role_tasks := play_call.get_role_tasks(role)
+		var role_players := graph.get_role_players(role, home_team)
+		for i in role_players.size():
+			role_players[i].set_state(role_tasks[i].get_line_up(on_offense))
+		# Give QB the ball
+		if role == Player.Role.QB:
+			if ball:
+				ball.queue_free()
+				ball = null
+			ball_carrier = role_players[0]
+	# Remove active players with roles not in play_call
+	var players_to_delete: Array[Player] = []
+	for player: Player in graph.get_players():
+		if player.on_home_team == home_team and player.role not in play_call_roles:
+			players_to_delete.append(player)
+			#remove_player(player.role, home_team)
+	for player: Player in players_to_delete:
+		delete_player(player)
+
+
+func add_player(role: Player.Role, on_home_team: bool) -> Player:
+	var instance := PLAYER.instantiate()
+	instance.role = role
+	instance.on_home_team = on_home_team
+	graph.add_player(instance)
+	add_child(instance)
+	instance.position.y = randf_range(-50, 50)
+	return instance
+
+# Returns null if player w/ role doesn't exist
+func remove_player(role: Player.Role, on_home_team: bool) -> Player:
+	for player in graph.get_players():
+		if player.role == role and player.on_home_team == on_home_team:
+			return delete_player(player)
+	return null
+
+# I would also call this function remove_player IF GDSCRIPT LET MEEE
+func delete_player(player: Player) -> Player:
+	graph.remove_player(player)
+	player.queue_free()
+	return player
+"
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1_qt8sl")
+home_offense_call = SubResource("Resource_p4quc")
+home_defense_call = SubResource("Resource_3ceen")
+away_offense_call = SubResource("Resource_exldt")
+away_defense_call = SubResource("Resource_khtqv")
+
+[node name="PlayerManager" type="Node2D" parent="."]
+y_sort_enabled = true
+script = SubResource("GDScript_femwn")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("7_mh2ru")
+
+[node name="Field" type="Node2D" parent="."]
+z_index = -100
+z_as_relative = false
+script = ExtResource("7_6kmpf")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="GameUI" parent="CanvasLayer" instance=ExtResource("8_ndp81")]
