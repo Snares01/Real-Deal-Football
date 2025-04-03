@@ -19,7 +19,7 @@ static func new_default(role: Player.Role) -> PlayerStats:
 			stats.run_accel = 90.0
 			stats.sprint_accel = 45.0
 		Role.DB:
-			stats.sprint_speed = 80.0
+			stats.sprint_speed = 60.0 # 80
 			stats.reaction_time = randf_range(0.3, 1.0)
 			stats.predict_dist = randf_range(0.0, 3.0)
 		Role.DT, Role.DE:

@@ -164,7 +164,7 @@ y_sort_enabled = true
 script = ExtResource("6_l8g03")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(1.8, 1.8)
+zoom = Vector2(1.7, 1.7)
 script = ExtResource("7_mh2ru")
 
 [node name="Field" type="Node2D" parent="."]

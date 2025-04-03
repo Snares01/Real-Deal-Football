@@ -185,7 +185,7 @@ func get_interception_pos(target: Player) -> Vector2:
 	if target.velocity.is_zero_approx():
 		return target.position # Assume target will continue standing still
 	# Solve for case where both are at constant velocity (max_speed)
-	var intercept_time := _get_intercept_time_constant_velocity(target)
+	var intercept_time := get_player_intercept_time(target)
 	if intercept_time <= 0.0:
 		return target.position
 	# TODO: Approximate more accurate position by accounting for acceleration
@@ -194,9 +194,40 @@ func get_interception_pos(target: Player) -> Vector2:
 	return target_pos
 
 # Get time to intercept other player, assuming both players are at max speed (bc fuck math)
-func _get_intercept_time_constant_velocity(target: Player) -> float:
+# Returns -1.0 if player can't be reached
+func get_player_intercept_time(target: Player) -> float:
 	var to_target := target.position - position
 	var target_vel := target.velocity.normalized() * target.stats.sprint_speed
+	# get coefficents
+	var a: float = target_vel.dot(target_vel) - (stats.sprint_speed * stats.sprint_speed)
+	var b: float = 2.0 * target_vel.dot(to_target)
+	var c: float = to_target.dot(to_target)
+	# solve for time linearly if a is close to zero
+	if abs(a) < 0.001:
+		# Solve using linear equation
+		if abs(b) < 0.001:
+			return -1.0
+		elif -c / b > 0:
+			return -c / b
+		else:
+			return -1.0
+	# get discriminant
+	var discriminant := (b * b) - (4.0 * a * c)
+	if discriminant < 0:
+		return -1.0
+	# solve for time quadratically
+	var t1 := (-b + sqrt(discriminant)) / (2.0 * a)
+	var t2 := (-b - sqrt(discriminant)) / (2.0 * a)
+	# get smallest time that's positive
+	if min(t1, t2) > 0.0:
+		return min(t1, t2)
+	elif max(t1, t2) > 0.0:
+		return max(t1, t2)
+	return -1.0
+
+
+func get_intercept_time(target_pos: Vector2, target_vel: Vector2) -> float:
+	var to_target := target_pos - position
 	# get coefficents
 	var a: float = target_vel.dot(target_vel) - (stats.sprint_speed * stats.sprint_speed)
 	var b: float = 2.0 * target_vel.dot(to_target)
