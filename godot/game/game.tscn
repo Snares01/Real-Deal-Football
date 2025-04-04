@@ -26,6 +26,7 @@ weight = 100.0
 strength = 100.0
 reaction_time = 0.5
 predict_dist = 1.0
+anger = null
 metadata/_custom_type_script = "uid://8qqjp42k3gie"
 
 [sub_resource type="Resource" id="Resource_ln7ps"]

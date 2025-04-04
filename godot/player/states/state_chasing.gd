@@ -12,9 +12,12 @@ static func chase_man(man: Player) -> StateChasing:
 	instance.man_to_chase = man
 	return instance
 
+@onready var react_time_left := stats.reaction_time # updates predict_direction
+
 var role_to_chase: Player.Role
 var man_to_chase: Player
 
+var predict_velocity := Vector2.ZERO # where we think our man is going
 var man: Player
 
 func _init() -> void:
@@ -35,8 +38,13 @@ func _process(delta: float) -> void:
 	if man == null:
 		end_state()
 	else:
-		#target_pos = player.get_intercept_point(man)
-		target_pos = player.get_interception_pos(man)
+		#target_pos = player.get_player_interception_pos(man)
+		target_pos = player.get_interception_pos(man.position, predict_velocity)
+		# Update prediction_direction
+		react_time_left -= delta
+		if react_time_left < 0.0:
+			react_time_left = stats.reaction_time
+			predict_velocity = man.velocity
 	
 	super._process(delta)
 

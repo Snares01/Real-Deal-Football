@@ -44,7 +44,7 @@ func handle_event(event: Event) -> void:
 		Event.PLAY_END:
 			player.set_state(StateStanding.new())
 		Event.BALL_NEARBY:
-			if player.role in [Player.Role.WR, Player.Role.QB]:
+			if player.role == Player.Role.WR:
 				player.set_state(StateCatching.new())
 			elif player.on_home_team != Globals.drive_dir:
 				# Go for interception / pass block

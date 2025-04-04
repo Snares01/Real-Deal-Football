@@ -40,7 +40,7 @@ func _process(delta: float) -> void:
 				manager.graph.add_relation(p_block, player, PlayerGraph.Relation.BLOCKING)
 		lead_player()
 	else:
-		target_pos = player.get_interception_pos(p_block)
+		target_pos = player.get_player_interception_pos(p_block)
 		if p_block.get_state() is StateTackled:
 			_drop_block()
 	super._process(delta)

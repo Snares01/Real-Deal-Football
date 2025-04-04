@@ -38,7 +38,6 @@ var _man: Player = null # Man being covered / targeted (set through set_man())
 func _ready() -> void:
 	SignalBus.game_event.connect(trigger_event)
 	set_state(StateStanding.new())
-	$Debug.text = str(role)
 	if on_home_team:
 		modulate = Color(1, 0.5, 0.5)
 	else:
@@ -47,6 +46,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	position += velocity * delta
+	if _current_state == null:
+		print("player.gd: CURRENT STATE NOT FOUND prev state: " + _previous_state.get_script().get_global_name())
+		return
 	# Push away from close players
 	if not (_current_state is StateSet or _current_state is StateTackled):
 		for player in get_overlapping_areas():
@@ -61,6 +63,7 @@ func _process(delta: float) -> void:
 		elif ((on_home_team and position.x > 50.0 * Field.YARD)
 		 or not on_home_team and position.x < -50.0 * Field.YARD):
 			SignalBus.game_event.emit(State.Event.TOUCHDOWN)
+	#$Debug.text = _current_state.get_script().get_global_name()
 
 
 func is_out_of_bounds() -> bool:
@@ -99,15 +102,17 @@ func set_state(state: State) -> void:
 		
 		if animator.current_animation_length == prev_length:
 			animator.seek(prev_pos)
-	# debug
-	$Debug.text = state.get_script().get_global_name()
+	
+	if not _current_state:
+		print("player.gd: set_state went wrong. horribly wrong")
+		continue_previous_state()
 
 
 func continue_previous_state() -> void:
 	if _previous_state:
 		set_state(_previous_state)
 	else:
-		print("player.gd: previous state not found")
+		print("player.gd: previous state not found. current_state: " + _current_state.get_script().get_global_name())
 		set_state(StateStanding.new())
 
 
@@ -181,7 +186,7 @@ func trigger_event(event: State.Event) -> void:
 
 # Returns position to run towards to inercept target's path
 # Returns target's position if we can't get there
-func get_interception_pos(target: Player) -> Vector2:
+func get_player_interception_pos(target: Player) -> Vector2:
 	if target.velocity.is_zero_approx():
 		return target.position # Assume target will continue standing still
 	# Solve for case where both are at constant velocity (max_speed)
@@ -192,6 +197,19 @@ func get_interception_pos(target: Player) -> Vector2:
 	# get position target will be in
 	var target_pos := target.position + (target.velocity.normalized() * stats.sprint_speed * intercept_time)
 	return target_pos
+
+# Same as get_player_interception_pos
+func get_interception_pos(target_pos: Vector2, target_vel: Vector2) -> Vector2:
+	if target_vel.is_zero_approx():
+		return target_pos
+	# Solve for case where both are at constant velocity (max_speed)
+	var intercept_time := get_intercept_time(target_pos, target_vel)
+	if intercept_time <= 0.0:
+		return target_pos
+	# get position target will be in
+	var output := target_pos + (target_vel.normalized() * stats.sprint_speed * intercept_time)
+	return output
+
 
 # Get time to intercept other player, assuming both players are at max speed (bc fuck math)
 # Returns -1.0 if player can't be reached
@@ -225,7 +243,7 @@ func get_player_intercept_time(target: Player) -> float:
 		return max(t1, t2)
 	return -1.0
 
-
+# Same as get_player_intercept_time but with different arguments
 func get_intercept_time(target_pos: Vector2, target_vel: Vector2) -> float:
 	var to_target := target_pos - position
 	# get coefficents

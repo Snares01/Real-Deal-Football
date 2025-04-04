@@ -6,12 +6,12 @@ static func wrestle(player: Player) -> StateWrestling:
 	instance.opp = player
 	return instance
 
-const MIN_TICK_RATE := 0.1
+const MIN_TICK_RATE := 0.2
 const MAX_TICK_RATE := 0.5
 const TACKLE_TIME := 0.66
 const BASE_SHOVE_FORCE := 30.0
 const MAX_DISTANCE := 16.0
-const BASE_SHOVE_CHANCE := 0.15
+const BASE_SHOVE_CHANCE := 0.10
 const BASE_TACKLE_CHANCE := 0.05
 
 var opp: Player
