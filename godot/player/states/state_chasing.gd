@@ -21,7 +21,7 @@ var predict_velocity := Vector2.ZERO # where we think our man is going
 var man: Player
 
 func _init() -> void:
-	target_reached_margin = 12.0
+	target_reached_margin = 21.0
 	super._init()
 
 
@@ -38,8 +38,8 @@ func _process(delta: float) -> void:
 	if man == null:
 		end_state()
 	else:
-		#target_pos = player.get_player_interception_pos(man)
-		target_pos = player.get_interception_pos(man.position, predict_velocity)
+		target_pos = player.get_player_interception_pos(man)
+		#target_pos = player.get_interception_pos(man.position, predict_velocity)
 		# Update prediction_direction
 		react_time_left -= delta
 		if react_time_left < 0.0:

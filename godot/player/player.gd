@@ -47,7 +47,10 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	position += velocity * delta
 	if _current_state == null:
-		print("player.gd: CURRENT STATE NOT FOUND prev state: " + _previous_state.get_script().get_global_name())
+		print("player.gd: CURRENT STATE NOT FOUND")
+		$Debug.text = "ERROR"
+		if is_instance_valid(_previous_state):
+			print("prev state: " + _previous_state.get_script().get_global_name())
 		return
 	# Push away from close players
 	if not (_current_state is StateSet or _current_state is StateTackled):
@@ -103,8 +106,8 @@ func set_state(state: State) -> void:
 		if animator.current_animation_length == prev_length:
 			animator.seek(prev_pos)
 	
-	if not _current_state:
-		print("player.gd: set_state went wrong. horribly wrong")
+	if not is_instance_valid(_current_state):
+		print("player.gd: set_state went wrong")
 		continue_previous_state()
 
 
@@ -112,7 +115,9 @@ func continue_previous_state() -> void:
 	if _previous_state:
 		set_state(_previous_state)
 	else:
-		print("player.gd: previous state not found. current_state: " + _current_state.get_script().get_global_name())
+		print("player.gd: previous state not found.")
+		if is_instance_valid(_current_state):
+			print("current state: " + _current_state.get_script().get_global_name())
 		set_state(StateStanding.new())
 
 
@@ -184,6 +189,50 @@ func trigger_event(event: State.Event) -> void:
 		zone = Rect2(0, 0, 0, 0)
 		set_man(null)
 
+# Get distance travelled in given time (assuming acceleration)
+func calculate_distance(time: float) -> float:
+	var distance := 0.0
+	var current_speed := velocity.length()
+	var time_left := time
+	
+	# At full sprint
+	if is_equal_approx(current_speed, stats.sprint_speed):
+		return current_speed * time
+	# Above run speed
+	elif current_speed >= stats.run_speed:
+		var t_to_sprint_speed := (stats.sprint_speed - current_speed) / stats.sprint_accel
+		
+		if time_left <= t_to_sprint_speed:
+			# Won't reach sprint speed
+			distance = (current_speed * time_left) + (0.5 * stats.sprint_accel * time_left * time_left)
+		else:
+			# Will reach sprint speed
+			distance = (current_speed * time_left) + (0.5 * stats.sprint_accel * t_to_sprint_speed * t_to_sprint_speed)
+			time_left -= t_to_sprint_speed
+			distance += stats.sprint_speed * time_left
+	# Below run speed
+	else:
+		var t_to_run_speed := (stats.run_speed - current_speed) / stats.run_accel
+		
+		if time_left <= t_to_run_speed:
+			# Won't reach run speed
+			distance = (current_speed * time_left) + (0.5 * stats.run_accel * time_left * time_left)
+		else:
+			# Will reach run speed
+			distance = (current_speed * time_left) + (0.5 * stats.run_accel * t_to_run_speed * t_to_run_speed)
+			time_left -= t_to_run_speed
+			# Check if we will reach sprint speed
+			var t_to_sprint_speed := (stats.sprint_speed - current_speed) / stats.sprint_accel
+			if time_left <= t_to_sprint_speed:
+				# Won't reach sprint speed
+				distance += (current_speed * time_left) + (0.5 * stats.sprint_accel * time_left * time_left)
+			else:
+				# Will reach sprint speed
+				distance += (current_speed * time_left) + (0.5 * stats.sprint_accel * t_to_sprint_speed * t_to_sprint_speed)
+				time_left -= t_to_sprint_speed
+				distance += stats.sprint_speed * time_left
+	return distance
+
 # Returns position to run towards to inercept target's path
 # Returns target's position if we can't get there
 func get_player_interception_pos(target: Player) -> Vector2:
@@ -209,7 +258,6 @@ func get_interception_pos(target_pos: Vector2, target_vel: Vector2) -> Vector2:
 	# get position target will be in
 	var output := target_pos + (target_vel.normalized() * stats.sprint_speed * intercept_time)
 	return output
-
 
 # Get time to intercept other player, assuming both players are at max speed (bc fuck math)
 # Returns -1.0 if player can't be reached

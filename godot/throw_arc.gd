@@ -2,6 +2,8 @@ extends Node2D
 class_name ThrowArc
 
 var throw_swipe := Vector2.ZERO
+var catch_pos := Vector2.ZERO # Where the ball is projected to land
+var air_time := 0.0
 var player: Player
 
 func update_throw(swipe: Vector2) -> void:
@@ -21,5 +23,10 @@ func _draw():
 	var vec2_points: Array[Vector2] = []
 	for pos in vec3_points:
 		vec2_points.append(Vector2(pos.x, pos.y - pos.z))
+	if vec2_points.size() > 10:
+		catch_pos = vec2_points[vec2_points.size() - 3]
+	else:
+		catch_pos = vec2_points.back()
+	air_time = vec2_points.size() * Ball.THROW_ARC_TICKRATE
 	
 	draw_polyline(vec2_points, Color(0.1, 0.1, 1.0, 0.8), 1.1)
