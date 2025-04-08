@@ -1,83 +1,52 @@
 extends StatePassing
 class_name StatePassingCPU
 
+const CATCH_MARGIN := 25.0
+const AIM_TARGETS_SIZE := 30
+
 var throw_input := Vector2.RIGHT
 var target: Player
 
-var is_throw_advised := false
+var is_throw_advised := true
 var throw_wait := randf_range(1.0, 4.0)
+var aim_targets: Array[Vector2]
 
 func _ready() -> void:
 	super._ready()
 	_find_target()
+	for i in AIM_TARGETS_SIZE:
+		aim_targets.append(Vector2.ZERO)
 
 func _process(delta: float) -> void:
 	if is_instance_valid(target):
 		throw_arc.update_throw(throw_input)
-		var travel_dist := target.calculate_distance(throw_arc.air_time)
-		var target_lead := Vector2.ZERO # How far in front of player to throw
-		# lead target along route
+		var proj_pos: Vector2
+		
+		
+		const LEAD_TIME_REVISIONS := 5
 		if target.get_state() is StateRunning:
-			# Project position based on route being ran
-			var target_pos := (target.get_state() as StateRunning).target_pos
-			var dist_to_end := target.position.distance_to(target_pos)
-			if dist_to_end >= travel_dist:
-				# Won't change direction mid-run
-				is_throw_advised = true
-				target_lead += target.position.direction_to(target_pos) * travel_dist
-				# reduce lead the more target_pos is in a different direction
-				var ang_diff := (target.velocity.normalized()
-					.dot(target.position.direction_to(target_pos)) + 1.0) / 2.0
-				#target_lead *= ang_diff
-			else:
-				# Will change direction / reach end of route mid-run
-				is_throw_advised = true
-				target_lead += target.position.direction_to(target_pos) * dist_to_end
-				travel_dist -= dist_to_end
-				if target.get_state().next is StateRunning:
-					is_throw_advised = false
-					var new_target_pos := (target.get_state().next as StateRunning).target_pos
-					target_lead += target_pos.direction_to(new_target_pos) * travel_dist
-					# reduce lead the more target_pos is in a different direction
-					#var ang_diff := (target.position.direction_to(target_pos)
-					#	.dot(target_pos.direction_to(new_target_pos)) + 1.0) / 2.0
-					target_pos = new_target_pos
-			
-			# TODO: add to target_lead if target's x-pos isn't far from own
-			var ang_diff: float
-			if player.on_home_team:
-				ang_diff = target.position.direction_to(target_pos).dot(Vector2.RIGHT)
-			else:
-				ang_diff = target.position.direction_to(target_pos).dot(Vector2.LEFT)
-			# Add target lead if target if running away
-			if ang_diff > 0.8:
-				if (target.position.x < Globals.scrimmage*Field.Y) == (player.position.x < Globals.scrimmage*Field.Y):
-					# more lead if target is behind line of scrimmage
-					#print("S")
-					target_lead *= 1.25
-				else:
-					#print("A")
-					target_lead *= 0.8
-			elif ang_diff > 0.0:
-				#print("B")
-				target_lead *= 0.7
-			elif ang_diff > -0.66:
-				#print("C")
-				target_lead *= 0.6
-			else:
-				#print("D")
-				target_lead *= 0.5
-			# Add lead for greater distance
-			#print(player.position.distance_to(target.position) * 0.001)
-			#target_lead *= 1.0 + (player.position.distance_to(target.position) * 0.001)
+			var run_state: StateRunning = target.get_state()
+			# Get lead time
+			var air_time := Ball.time_to_target(player.position, target.position)
+			for i in LEAD_TIME_REVISIONS:
+				# Revise air_time using position the target will be in at end of throw
+				# More loops = more accuracy (test this)
+				air_time = Ball.time_to_target(player.position,
+				 run_state.calculate_route_pos(air_time))
+			proj_pos = run_state.calculate_route_pos(air_time) - player.position
+		else:
+			proj_pos = (target.position.normalized() * (target.position.length() + CATCH_MARGIN)) - player.position
+		aim_targets.push_back(proj_pos)
+		aim_targets.pop_front()
 		
-		if is_throw_advised:
-			# TODO: figure out if throw is advised
-			pass
+		# TODO: figure out if throw is advised
 		
-		var proj_pos: Vector2 = (target.position - player.position) + target_lead
-		#proj_pos *= 1.25
-		throw_input += throw_arc.catch_pos.direction_to(proj_pos) * delta * max(throw_arc.catch_pos.distance_to(proj_pos), 1.0)
+		# Get average throw from aim_target
+		var avg_aim_pos := Vector2.ZERO
+		for i in aim_targets.size():
+			avg_aim_pos += aim_targets[i]
+		avg_aim_pos /= aim_targets.size() 
+		throw_input += throw_arc.catch_pos.direction_to(avg_aim_pos) * delta * max(throw_arc.catch_pos.distance_to(proj_pos), 1.0)
 		# throw
 		throw_wait -= delta
 		if throw_wait < 0.0:

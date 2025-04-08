@@ -1,4 +1,4 @@
-[gd_scene load_steps=37 format=3 uid="uid://bmyngxuktv4tv"]
+[gd_scene load_steps=39 format=3 uid="uid://bmyngxuktv4tv"]
 
 [ext_resource type="Script" uid="uid://b6dbrfk5npwe6" path="res://game/game_manager.gd" id="1_qt8sl"]
 [ext_resource type="Script" uid="uid://8qqjp42k3gie" path="res://player/player_stats.gd" id="2_b686c"]
@@ -29,7 +29,7 @@ predict_dist = 1.0
 anger = null
 metadata/_custom_type_script = "uid://8qqjp42k3gie"
 
-[sub_resource type="Resource" id="Resource_ln7ps"]
+[sub_resource type="Resource" id="Resource_58yx1"]
 script = ExtResource("3_41m6p")
 cpu = true
 role = 0
@@ -65,7 +65,7 @@ metadata/_custom_type_script = "uid://dnumofps04vgw"
 
 [sub_resource type="Resource" id="Resource_5e03w"]
 script = ExtResource("3_a74io")
-route = Array[Vector2]([Vector2(-50, -50), Vector2(-50, -200)])
+route = Array[Vector2]([Vector2(-50, -50), Vector2(-50, -200), Vector2(-50, -180)])
 role = 1
 line_up = Vector2(-20, 65)
 metadata/_custom_type_script = "uid://dnumofps04vgw"
@@ -100,9 +100,9 @@ role = 6
 line_up = Vector2(-25, 32)
 metadata/_custom_type_script = "uid://b2pa1sq81fbfk"
 
-[sub_resource type="Resource" id="Resource_leid8"]
+[sub_resource type="Resource" id="Resource_p4quc"]
 script = ExtResource("4_vswil")
-play = Array[ExtResource("2_j8tme")]([SubResource("Resource_ln7ps"), SubResource("Resource_xqpkt"), SubResource("Resource_3vho3"), SubResource("Resource_j8tme"), SubResource("Resource_b686c"), SubResource("Resource_5e03w"), SubResource("Resource_hb504"), SubResource("Resource_ee6o4"), SubResource("Resource_4cobl"), SubResource("Resource_dxwpq"), SubResource("Resource_mhvfb")])
+play = Array[ExtResource("2_j8tme")]([SubResource("Resource_58yx1"), SubResource("Resource_xqpkt"), SubResource("Resource_3vho3"), SubResource("Resource_j8tme"), SubResource("Resource_b686c"), SubResource("Resource_5e03w"), SubResource("Resource_hb504"), SubResource("Resource_ee6o4"), SubResource("Resource_4cobl"), SubResource("Resource_dxwpq"), SubResource("Resource_mhvfb")])
 
 [sub_resource type="Resource" id="Resource_qf6n1"]
 script = ExtResource("6_j8tme")
@@ -153,10 +153,21 @@ metadata/_custom_type_script = "uid://dvywilts6p7h"
 script = ExtResource("4_vswil")
 play = Array[ExtResource("2_j8tme")]([SubResource("Resource_qf6n1"), SubResource("Resource_vsp63"), SubResource("Resource_vsp63"), SubResource("Resource_vsp63"), SubResource("Resource_u8s88"), SubResource("Resource_8bboj"), SubResource("Resource_q52ks"), SubResource("Resource_jucfl"), SubResource("Resource_jdpby")])
 
+[sub_resource type="Resource" id="Resource_ln7ps"]
+script = ExtResource("3_41m6p")
+cpu = true
+role = 0
+line_up = Vector2(-80, 0)
+metadata/_custom_type_script = "uid://30brrhhy36yt"
+
+[sub_resource type="Resource" id="Resource_leid8"]
+script = ExtResource("4_vswil")
+play = Array[ExtResource("2_j8tme")]([SubResource("Resource_ln7ps"), SubResource("Resource_xqpkt"), SubResource("Resource_3vho3"), SubResource("Resource_j8tme"), SubResource("Resource_b686c"), SubResource("Resource_5e03w"), SubResource("Resource_hb504"), SubResource("Resource_ee6o4"), SubResource("Resource_4cobl"), SubResource("Resource_dxwpq"), SubResource("Resource_mhvfb")])
+
 [node name="Game" type="Node2D"]
 script = ExtResource("1_qt8sl")
 stats = SubResource("Resource_pxxsx")
-home_offense_call = SubResource("Resource_leid8")
+home_offense_call = SubResource("Resource_p4quc")
 home_defense_call = SubResource("Resource_khtqv")
 away_offense_call = SubResource("Resource_leid8")
 away_defense_call = SubResource("Resource_khtqv")

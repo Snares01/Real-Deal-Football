@@ -3,13 +3,12 @@ class_name Ball
 
 const CATCH_HEIGHT := 15.0
 const THROW_SENSITIVITY := 0.1
-const THROW_HEIGHT_GAIN := 16.0
+const THROW_HEIGHT_GAIN := 22.0
 const THROW_POWER := 30.0
 const THROW_START_HEIGHT := 20.0
 const THROW_ARC_TICKRATE := 0.05
 const GRAVITY := 210.0
-const BASE_THROW_VELOCITY := 0.8
-const AIR_FRICTION := 100.0
+const AIR_FRICTION := 0 #50.0
 
 @onready var sprite: Sprite2D = $Sprite
 
@@ -17,7 +16,7 @@ var is_catchable := true
 # set on creation
 var velocity: Vector3
 var vec3_pos: Vector3
-var intitial_velocity: float
+var initial_velocity: float
 
 # Used for aiming visual
 static func get_arc_points(throw_input: Vector2) -> Array[Vector3]:
@@ -30,21 +29,32 @@ static func get_arc_points(throw_input: Vector2) -> Array[Vector3]:
 		output.append(ball_pos)
 		ball_pos += aim_vel * THROW_ARC_TICKRATE
 		aim_vel.z -= GRAVITY * THROW_ARC_TICKRATE
-		if aim_vel.length() > initial_vel * BASE_THROW_VELOCITY:
-			aim_vel = aim_vel.limit_length(aim_vel.length() - (AIR_FRICTION * THROW_ARC_TICKRATE))
+		aim_vel = aim_vel.limit_length(aim_vel.length() - (AIR_FRICTION * THROW_ARC_TICKRATE))
 	return output
 
 
 static func swipe_to_velocity(throw_input: Vector2) -> Vector3:
+	# Commented-out code calculates THROW_ANGLE
 	var output := Vector3(throw_input.x, throw_input.y, 0)
 	output *= THROW_SENSITIVITY * THROW_POWER
+	#var horizontal := output.length()
 	output.z = throw_input.length() * THROW_SENSITIVITY * THROW_HEIGHT_GAIN
+	#var angle := Vector2(horizontal, output.z)
+	#print(angle.angle())
 	return output
+
+const THROW_ANGLE := 0.633 # in radians above ground
+static func time_to_target(start_pos: Vector2, target_pos: Vector2) -> float:
+	# TODO: Maybe add some margin to throw_dist
+	var throw_dist := start_pos.distance_to(target_pos)
+	# What is known: distance, launch angle, gravity, friction
+	var velocity := sqrt((GRAVITY * throw_dist) / (2.0 * cos(THROW_ANGLE) * sin(THROW_ANGLE)))
+	return throw_dist / velocity
 
 
 func _ready() -> void:
 	area_entered.connect(_on_player_entered)
-	intitial_velocity = velocity.length()
+	initial_velocity = velocity.length()
 
 
 func _process(delta: float) -> void:
@@ -53,9 +63,8 @@ func _process(delta: float) -> void:
 	vec3_pos += velocity * delta
 	velocity.z -= GRAVITY * delta
 	global_position = Vector2(vec3_pos.x, vec3_pos.y)
-	# air friction (initial speed decrease)
-	if velocity.length() > intitial_velocity * BASE_THROW_VELOCITY:
-		velocity = velocity.limit_length(velocity.length() - (AIR_FRICTION * delta))
+	# air friction
+	velocity = velocity.limit_length(velocity.length() - (AIR_FRICTION * delta))
 	# floor bounce
 	if vec3_pos.z < 0 and velocity.z < 0:
 		is_catchable = false

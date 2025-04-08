@@ -79,3 +79,94 @@ func _get_target_speed(target_dir: Vector2) -> float:
 	var target_speed: float = max(1.0, angle_diff * stats.sprint_speed)
 	# Don't let target_speed actually go to zero
 	return target_speed
+
+# Returns position after running route for given duration
+func calculate_route_pos(time: float) -> Vector2:
+	var travel_dist := calculate_route_distance(time)
+	var new_pos := player.position.move_toward(target_pos, travel_dist)
+	
+	var dist_to_target := player.position.distance_to(target_pos)
+	if dist_to_target < travel_dist:
+		travel_dist -= dist_to_target
+		if next != null and next is StateRunning:
+			# Reaches new target in route
+			new_pos = new_pos.move_toward(next.target_pos, travel_dist)
+	#print(player.position - new_pos)
+	return new_pos
+
+
+const TURN_DIST_PENALTY := 50.0
+const END_ROUTE_MARGIN := 30.0
+func calculate_route_distance(time: float) -> float:
+	var travel_dist := _calculate_distance(time)
+	# reduce distance the more target_pos is in a different direction
+	var ang_diff := 1.0 - ((player.velocity.normalized()
+		.dot(player.position.direction_to(target_pos)) + 1.0) / 2.0)
+	travel_dist = max(0.0, travel_dist - (TURN_DIST_PENALTY * ang_diff))
+	#print(travel_dist)
+	# Determine if we will reach target_pos
+	var target_pos_dist := player.position.distance_to(target_pos)
+	if (target_pos_dist < travel_dist):
+		# See if there is another point in route
+		if next != null and next is StateRunning:
+			var next_target_pos_dist := target_pos.distance_to(next.target_pos)
+			# Reduce distance the more next.target_pos is in different direction
+			ang_diff = 1.0 - ((player.position.direction_to(target_pos)
+				.dot(target_pos.direction_to(next.target_pos)) + 1.0) / 2.0)
+			travel_dist = clamp(travel_dist - (TURN_DIST_PENALTY * ang_diff), target_pos_dist, target_pos_dist + next_target_pos_dist)
+		else:
+			# Cap distance to end of route
+			travel_dist = min(target_pos_dist, travel_dist)
+	# Reduce distance the more next target_pos is in different direction
+	print(travel_dist)
+	return travel_dist
+
+# Get distance travelled in given time (assuming acceleration)
+func _calculate_distance(time: float) -> float:
+	var distance := 0.0
+	var current_speed := player.velocity.length()
+	var time_left := time
+	
+	# At full sprint
+	if is_equal_approx(current_speed, stats.sprint_speed):
+		return current_speed * time
+	# Above run speed
+	elif current_speed >= stats.run_speed:
+		var t_to_sprint_speed := (stats.sprint_speed - current_speed) / stats.sprint_accel
+		
+		if time_left <= t_to_sprint_speed:
+			#print("A")
+			# Won't reach sprint speed
+			distance = (current_speed * time_left) + (0.5 * stats.sprint_accel * time_left * time_left)
+		else:
+			#print("B")
+			# Will reach sprint speed
+			distance = (current_speed * time_left) + (0.5 * stats.sprint_accel * t_to_sprint_speed * t_to_sprint_speed)
+			time_left -= t_to_sprint_speed
+			distance += stats.sprint_speed * time_left
+	# Below run speed
+	else:
+		var t_to_run_speed := (stats.run_speed - current_speed) / stats.run_accel
+		
+		if time_left <= t_to_run_speed:
+			#print("C")
+			# Won't reach run speed
+			distance = (current_speed * time_left) + (0.5 * stats.run_accel * time_left * time_left)
+		else:
+			# Will reach run speed
+			distance = (current_speed * time_left) + (0.5 * stats.run_accel * t_to_run_speed * t_to_run_speed)
+			time_left -= t_to_run_speed
+			# Check if we will reach sprint speed
+			var t_to_sprint_speed := (stats.sprint_speed - current_speed) / stats.sprint_accel
+			if time_left <= t_to_sprint_speed:
+				#print("D")
+				# Won't reach sprint speed
+				distance += (current_speed * time_left) + (0.5 * stats.sprint_accel * time_left * time_left)
+			else:
+				#print("E")
+				# Will reach sprint speed
+				distance += (current_speed * time_left) + (0.5 * stats.sprint_accel * t_to_sprint_speed * t_to_sprint_speed)
+				time_left -= t_to_sprint_speed
+				distance += stats.sprint_speed * time_left
+	#print(distance)
+	return distance

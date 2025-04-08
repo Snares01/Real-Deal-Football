@@ -23,8 +23,8 @@ var p_block: Player # set in _ready()
 
 func _ready() -> void:
 	# add / remove relations (these signals work for state interruptions)
-	tree_entered.connect(_on_tree_entered)
-	tree_exited.connect(_on_tree_exited)
+	tree_entered.connect(self._on_tree_entered)
+	tree_exited.connect(self._on_tree_exited)
 	_on_tree_entered()
 
 func _process(delta: float) -> void:

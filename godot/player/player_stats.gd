@@ -9,14 +9,14 @@ static func new_default(role: Player.Role) -> PlayerStats:
 	
 	match role:
 		Role.OT, Role.OG, Role.C, Role.DT, Role.DE:
-			stats.run_accel = 50.0
+			stats.run_accel = 50.0 #50.0
 			stats.run_speed = 30.0
 			stats.sprint_accel = 20.0
 			stats.sprint_speed = 50.0
 			stats.weight = 250.0
 			stats.strength = 150.0
 		Role.WR:
-			stats.run_accel = 90.0
+			stats.run_accel = 90.0 #90.0
 			stats.sprint_accel = 45.0
 		Role.DB:
 			stats.sprint_speed = 60.0 # 80

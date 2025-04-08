@@ -75,19 +75,25 @@ func is_out_of_bounds() -> bool:
 
 
 func set_state(state: State) -> void:
-	# remove current state
+	if not is_instance_valid(state):
+		print("player.gd: New state not valid")
+		return
+	# remove / interrupt current state
 	if _current_state:
 		remove_child(_current_state)
 		if state.interrupting and not _current_state.interrupting:
 			_previous_state = _current_state
+			print("player.gd: state " + str(state) + " interrupted")
 			_current_state.on_interruption()
 		else:
+			print("player.gd: state " + str(state) + " removed")
 			_current_state.queue_free()
 	# add state
-	_current_state = state
 	state.player = self
 	state.manager = manager
+	print("player.gd: state " + str(state) + " added")
 	add_child(state)
+	_current_state = state
 	# update animation
 	if animator.current_animation.is_empty():
 		if manager.ball_carrier == self and not state.ball_anim_name.is_empty():
@@ -112,9 +118,10 @@ func set_state(state: State) -> void:
 
 
 func continue_previous_state() -> void:
-	if _previous_state:
+	if is_instance_valid(_previous_state):
 		set_state(_previous_state)
 	else:
+		_previous_state = null
 		print("player.gd: previous state not found.")
 		if is_instance_valid(_current_state):
 			print("current state: " + _current_state.get_script().get_global_name())
@@ -188,50 +195,6 @@ func trigger_event(event: State.Event) -> void:
 		_previous_state = null
 		zone = Rect2(0, 0, 0, 0)
 		set_man(null)
-
-# Get distance travelled in given time (assuming acceleration)
-func calculate_distance(time: float) -> float:
-	var distance := 0.0
-	var current_speed := velocity.length()
-	var time_left := time
-	
-	# At full sprint
-	if is_equal_approx(current_speed, stats.sprint_speed):
-		return current_speed * time
-	# Above run speed
-	elif current_speed >= stats.run_speed:
-		var t_to_sprint_speed := (stats.sprint_speed - current_speed) / stats.sprint_accel
-		
-		if time_left <= t_to_sprint_speed:
-			# Won't reach sprint speed
-			distance = (current_speed * time_left) + (0.5 * stats.sprint_accel * time_left * time_left)
-		else:
-			# Will reach sprint speed
-			distance = (current_speed * time_left) + (0.5 * stats.sprint_accel * t_to_sprint_speed * t_to_sprint_speed)
-			time_left -= t_to_sprint_speed
-			distance += stats.sprint_speed * time_left
-	# Below run speed
-	else:
-		var t_to_run_speed := (stats.run_speed - current_speed) / stats.run_accel
-		
-		if time_left <= t_to_run_speed:
-			# Won't reach run speed
-			distance = (current_speed * time_left) + (0.5 * stats.run_accel * time_left * time_left)
-		else:
-			# Will reach run speed
-			distance = (current_speed * time_left) + (0.5 * stats.run_accel * t_to_run_speed * t_to_run_speed)
-			time_left -= t_to_run_speed
-			# Check if we will reach sprint speed
-			var t_to_sprint_speed := (stats.sprint_speed - current_speed) / stats.sprint_accel
-			if time_left <= t_to_sprint_speed:
-				# Won't reach sprint speed
-				distance += (current_speed * time_left) + (0.5 * stats.sprint_accel * time_left * time_left)
-			else:
-				# Will reach sprint speed
-				distance += (current_speed * time_left) + (0.5 * stats.sprint_accel * t_to_sprint_speed * t_to_sprint_speed)
-				time_left -= t_to_sprint_speed
-				distance += stats.sprint_speed * time_left
-	return distance
 
 # Returns position to run towards to inercept target's path
 # Returns target's position if we can't get there

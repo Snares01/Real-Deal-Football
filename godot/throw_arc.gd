@@ -23,10 +23,7 @@ func _draw():
 	var vec2_points: Array[Vector2] = []
 	for pos in vec3_points:
 		vec2_points.append(Vector2(pos.x, pos.y - pos.z))
-	if vec2_points.size() > 10:
-		catch_pos = vec2_points[vec2_points.size() - 3]
-	else:
-		catch_pos = vec2_points.back()
+	catch_pos = vec2_points.back()
 	air_time = vec2_points.size() * Ball.THROW_ARC_TICKRATE
 	
 	draw_polyline(vec2_points, Color(0.1, 0.1, 1.0, 0.8), 1.1)
